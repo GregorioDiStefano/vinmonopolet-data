@@ -1,0 +1,12 @@
+html(ng-app="plunker")
+  head
+    title!= title
+    script(src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js")
+    script(src="/static/ui-bootstrap-tpls.min.js")
+    script(src="/static/lookup.js")
+    link(rel='stylesheet', href='/static/ui-bootstrap-csp.css')
+    link(rel='stylesheet', href='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css')
+  body
+    h1!= message
+    div(class="container-fluid", ng-controller="TypeaheadCtrl")
+        input(type="text", ng-model="result", typeahead="suggestion for suggestion in cities($viewValue)")

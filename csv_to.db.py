@@ -14,6 +14,7 @@ def add_date():
 
 def add_items(items):
         date = db.Date.get(date_id="%s-%s-%s" % (year, month, day))
+        print date.date_id, date.id
         with db.database.atomic():
             for item in items:
                 db.ItemsData(date=date,**item).save()
@@ -42,12 +43,16 @@ insert_data = []
 for l in body:
     line_seperated = [x.strip() for x in l.split(';')]
     insert_dict = {}
+
     for name, idx in columns_tuple:
-        if line_seperated[idx].isdigit():
-            insert_dict[name.lower()] = int(line_seperated[idx])
-        elif line_seperated[idx].replace(",", "").isdigit():
-            insert_dict[name.lower()] = float(line_seperated[idx].replace(',', '.'))
-        else:
-            insert_dict[name.lower()] = line_seperated[idx].encode("utf-8")
+        try:
+            if line_seperated[idx].isdigit():
+                insert_dict[name.lower()] = int(line_seperated[idx])
+            elif line_seperated[idx].replace(",", "").isdigit():
+                insert_dict[name.lower()] = float(line_seperated[idx].replace(',', '.'))
+            else:
+                insert_dict[name.lower()] = line_seperated[idx].encode("utf-8")
+        except IndexError:
+            print "Item: %s, %s does not exist" % (name, idx)
     insert_data.append(insert_dict)
 add_items(insert_data)

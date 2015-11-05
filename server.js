@@ -7,14 +7,13 @@ var cache = new NodeCache();
 var _ = require('underscore');
 
 app.set('view engine', 'jade');
-app.set('views', './views')
+app.set('views', './views');
 app.use('/static', express.static('static'));
 
 if (app.get('env') === 'development') {
   app.locals.pretty = true;
 }
 
-var check;
 var product_list = []; //mapping would be easier to work with
 var db = new sqlite3.Database('vinmonopolet.db');
 
@@ -23,8 +22,8 @@ String.prototype.quote = (function(){
 })
 
 function check_database() {
-    var today = new Date()
-    var today_str = today.toISOString().substr(0, 10)
+    var today = new Date();
+    var today_str = today.toISOString().substr(0, 10);
 
     var error = false;
     var query = squel.select("id").from("date order by id desc limit 1").toString()
@@ -33,64 +32,66 @@ function check_database() {
     db.parallelize(function() {
         db.each(query, function(err, row) {
             if (err) {
-                console.log(err)
-                error = true
+                console.log(err);
+                error = true;
             }
             else {
                 if (row.date_id != today_str) {
-                    error = true
-                    var details = "expected: " + today_str + " found: " + row.date_id
-                    console.error("Most recent data not imported to database: " + details)
+                    error = true;
+                    var details = "expected: " + today_str + " found: " + row.date_id;
+                    console.error("Most recent data not imported to database: " + details);
                 }
             }
         }, function() {
                 if (!error)
-                    console.log("Database looks okay.")
+                    console.log("Database looks okay.");
         })
     })
 }
 
 function products_difference(days, callback) {
-    value = cache.get("products_difference")
+    var cache_key = arguments.callee.name;
+    value = cache.get(cache_key);
 
-    if (value != undefined) {
-        return callback(value)
+    if (value !== undefined) {
+        return callback(value);
     }
 
-    var today = new Date()
-    var today_str = today.toISOString().substr(0, 10)
-    var past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10)
-    var new_items = []
+    var today = new Date();
+    var today_str = today.toISOString().substr(0, 10);
+    var past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
+    var new_items = [];
 
     var query = "SELECT distinct varenummer, varenavn, vareurl FROM itemsdata, date WHERE (date.id = itemsdata.date_id) AND (date.date_id = " + today_str.quote() + ") and varenummer not in (SELECT distinct varenummer FROM itemsdata, date where  (date.id = itemsdata.date_id) AND (date.date_id = "+ past_date_str.quote() +"))"
 
     db.parallelize(function() {
         db.each(query, function(err, row) {
             if (err)
-                console.log(err)
+                console.log(err);
             else
-                new_items.push(row)
+                new_items.push(row);
         }, function() {
-            success = cache.set("products_difference", new_items, 120);
-            callback(new_items)
+            success = cache.set(cache_key, new_items, 120);
+            callback(new_items);
         })
     });
 }
 
 function price_difference_lookup(days, callback) {
-    value = cache.get("price_difference")
+    var cache_key = arguments.callee.name;
+    value = cache.get(cache_key);
 
-    if (value != undefined) {
-        return callback(value)
+    if (value !== undefined) {
+        return callback(value);
     }
 
-    var tmp = {}
-    var prices = []
+    var tmp = {};
+    var prices = [];
 
     db.parallelize(function() {
-            today = new Date()
-            today_str = today.toISOString().substr(0, 10)
-            past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10)
+            today = new Date();
+            today_str = today.toISOString().substr(0, 10);
+            past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
 
             db.each(squel.select().field("date.date_id as itemdate").field("varenummer").field("varenavn").field("pris").field("vareurl")
                                   .from("date").from("itemsdata")
@@ -98,17 +99,17 @@ function price_difference_lookup(days, callback) {
                                   .where("date.date_id = " + today_str.quote() + " or date.date_id = " + past_date_str.quote()).toString(), function(err, row)
             {
                 if (err)
-                    console.log(err)
+                    console.log(err);
                 else {
                         if (row.varenummer in tmp && tmp[row.varenummer] != row.pris) {
                             prices.push({ "varenummer" : row.varenummer, "varenavn": row.varenavn, "old_price": tmp[row.varenummer], "new_price" : row.pris})
                         } else {
-                            tmp[row.varenummer] = row.pris
+                            tmp[row.varenummer] = row.pris;
                         }
                 }
             }, function() {
-                success = cache.set("price_difference", prices, 120);
-                callback(prices)
+                success = cache.set(cache_key, prices, 120);
+                callback(prices);
             })
     })
 }
@@ -118,15 +119,15 @@ function update_product_list() {
     db.parallelize(function() {
         db.each(squel.select().field("distinct varenummer as n").field("varenavn as name").from("itemsdata").toString(), function(err, row) {
             if (err)
-                console.log(err)
+                console.log(err);
             else
                 product_list.push([row.n, row.name])
         }, function() {
-                if (product_list.length == 0) {
-                    console.log("No products found. Database problem!")
+                if (product_list.length === 0) {
+                    console.log("No products found. Database problem!");
                 }
                 else {
-                    console.log("Product list complete. Item count: ", product_list.length)
+                    console.log("Product list complete. Item count: ", product_list.length);
                 }
         })
     });
@@ -150,7 +151,8 @@ function get_item_info(req, res) {
                                   .field("varenummer")
                                   .field("varenavn")
                                   .field("pris")
-                                  .from("date").from("itemsdata").where("varenummer=" + id + " and date.id = itemsdata.date_id").toString(), function(err, row) {
+                                  .from("date").from("itemsdata")
+                                  .where("varenummer=" + id + " and date.id = itemsdata.date_id").toString(), function(err, row) {
                 if (err)
                     console.log(err)
                 else {
@@ -166,7 +168,7 @@ function get_item_info(req, res) {
 }
 
 function send_product_list(req, res) {
-    query = req.query["s"]
+    query = req.query.s
     rtn_data = []
 
     if (query.length < 3)
@@ -213,14 +215,11 @@ app.get('/api/*', function(req, res) {
         switch (next_path) {
             case "products.json":
                 return send_product_list(req, res)
-                break
             case "item_info.json":
                 return get_item_info(req, res)
-                break
             default:
                 console.error("GET req: " + req.path + " failed")
                 res.status(403).send("Request not understood")
-                break
         }
     }
 })
@@ -229,6 +228,6 @@ var server = app.listen(3000, function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('Example app listening at http://%s:%s', host, port);
+  console.log('Listening at http://%s:%s', host, port);
 });
 

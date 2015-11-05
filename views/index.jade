@@ -7,19 +7,30 @@ html(ng-app="VinData")
     script(src="/static/Chart.js")
     script(src="/static/angular-chart.min.js")
 
+    link(rel='stylesheet', href='/static/pretty_table.css')
     link(rel='stylesheet', href='/static/ui-bootstrap-csp.css')
-    link(rel='stylesheet', href='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css')
+    link(rel='stylesheet', href='/static/bootstrap-combined.min.css')
     link(rel='stylesheet', href='/static/angular-chart.min.css')
 
   body
     h1!= "Vinmonopolet price history"
     div(class="container-fluid", ng-controller="TypeaheadCtrl")
         input(type="text", ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
-    ul
-        each val, index in diff_products
-            li= index + ': ' + val.varenummer + " " + val.varenavn
+    table(cellspacing=0)
+        thead
+            tr
+                th!="Varenummer"
+                th!="Varenavn"
+        tbody
+            each val, index in diff_products
+                tr
+                    td
+                        a(href=val.vareurl)!=val.varenummer
+                    td!=val.varenavn
+        //each val, index in diff_products
+        //    li= index + ': ' + val.varenummer + " " + val.varenavn
 
-        each val, index in diff_prices
-            li= index + ': ' + val.varenummer + " " + val.varenavn
+        //each val, index in diff_prices
+        //    li= index + ': ' + val.varenummer + " " + val.varenavn
 
         //canvas(id="line", class="chart chart-line", chart-options="chart_options", chart-data="data" chart-labels="labels" chart-legend="false" chart-series="series" chart-click="onClick")

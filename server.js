@@ -2,6 +2,8 @@ var sqlite3 = require('sqlite3').verbose();
 var express = require("express")
 var squel = require("squel")
 var app = express()
+var NodeCache = require( "node-cache" );
+var cache = new NodeCache();
 var _ = require('underscore');
 
 app.set('view engine', 'jade');
@@ -30,11 +32,13 @@ function check_database() {
     //check if most recent date is in db
     db.parallelize(function() {
         db.each(query, function(err, row) {
-            if (err)
+            if (err) {
                 console.log(err)
+                error = true
+            }
             else {
                 if (row.date_id != today_str) {
-                    error = true;
+                    error = true
                     var details = "expected: " + today_str + " found: " + row.date_id
                     console.error("Most recent data not imported to database: " + details)
                 }
@@ -47,6 +51,11 @@ function check_database() {
 }
 
 function products_difference(days, callback) {
+    value = cache.get("products_difference")
+
+    if (value != undefined) {
+        return callback(value)
+    }
 
     var today = new Date()
     var today_str = today.toISOString().substr(0, 10)
@@ -62,23 +71,28 @@ function products_difference(days, callback) {
             else
                 new_items.push(row)
         }, function() {
+            success = cache.set("products_difference", new_items, 120);
             callback(new_items)
         })
     });
 }
 
 function price_difference_lookup(days, callback) {
+    value = cache.get("price_difference")
+
+    if (value != undefined) {
+        return callback(value)
+    }
+
     var tmp = {}
     var prices = []
 
     db.parallelize(function() {
-
             today = new Date()
             today_str = today.toISOString().substr(0, 10)
             past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10)
-            console.log(today_str, past_date_str)
 
-            db.each(squel.select().field("date.date_id as itemdate").field("varenummer").field("varenavn").field("pris")
+            db.each(squel.select().field("date.date_id as itemdate").field("varenummer").field("varenavn").field("pris").field("vareurl")
                                   .from("date").from("itemsdata")
                                   .where("date.id = itemsdata.date_id")
                                   .where("date.date_id = " + today_str.quote() + " or date.date_id = " + past_date_str.quote()).toString(), function(err, row)
@@ -87,12 +101,13 @@ function price_difference_lookup(days, callback) {
                     console.log(err)
                 else {
                         if (row.varenummer in tmp && tmp[row.varenummer] != row.pris) {
-                            prices.push({ "item" : row.varenummer, "varenavn": row.varenavn, "old_price": tmp[row.varenummer], "new_price" : row.pris})
+                            prices.push({ "varenummer" : row.varenummer, "varenavn": row.varenavn, "old_price": tmp[row.varenummer], "new_price" : row.pris})
                         } else {
                             tmp[row.varenummer] = row.pris
                         }
                 }
             }, function() {
+                success = cache.set("price_difference", prices, 120);
                 callback(prices)
             })
     })
@@ -107,16 +122,19 @@ function update_product_list() {
             else
                 product_list.push([row.n, row.name])
         }, function() {
-                console.log("Product list complete.")
-                //console.log(price_difference_lookup(28))
-                //console.log(products_difference(20))
+                if (product_list.length == 0) {
+                    console.log("No products found. Database problem!")
+                }
+                else {
+                    console.log("Product list complete. Item count: ", product_list.length)
+                }
         })
     });
 }
 
 update_product_list()
 check_database()
-setInterval(update_product_list, 1000 * 60)
+setInterval(update_product_list, 1000 * 60 * 60)
 
 function get_item_info(req, res) {
     id = req.query.i

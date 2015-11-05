@@ -1,12 +1,25 @@
-html(ng-app="plunker")
+html(ng-app="VinData")
   head
     title!= title
     script(src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js")
     script(src="/static/ui-bootstrap-tpls.min.js")
     script(src="/static/lookup.js")
+    script(src="/static/Chart.js")
+    script(src="/static/angular-chart.min.js")
+
     link(rel='stylesheet', href='/static/ui-bootstrap-csp.css')
     link(rel='stylesheet', href='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css')
+    link(rel='stylesheet', href='/static/angular-chart.min.css')
+
   body
-    h1!= message
+    h1!= "Vinmonopolet price history"
     div(class="container-fluid", ng-controller="TypeaheadCtrl")
-        input(type="text", ng-model="result", typeahead="suggestion for suggestion in cities($viewValue)")
+        input(type="text", ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
+    ul
+        each val, index in diff_products
+            li= index + ': ' + val.varenummer + " " + val.varenavn
+
+        each val, index in diff_prices
+            li= index + ': ' + val.varenummer + " " + val.varenavn
+
+        //canvas(id="line", class="chart chart-line", chart-options="chart_options", chart-data="data" chart-labels="labels" chart-legend="false" chart-series="series" chart-click="onClick")

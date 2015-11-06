@@ -79,7 +79,7 @@ function products_difference(days, callback) {
 
 function price_difference_lookup(days, callback) {
     var cache_key = arguments.callee.name;
-    value = cache.get(cache_key);
+    var value = cache.get(cache_key);
 
     if (value !== undefined) {
         return callback(value);
@@ -87,19 +87,28 @@ function price_difference_lookup(days, callback) {
 
     var tmp = {};
     var prices = [];
-
+    
+    var today = new Date();
+    var today_str = today.toISOString().substr(0, 10);
+    var past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
+    var query = squel.select()
+                     .field("date.date_id as itemdate")
+                     .field("varenummer")
+                     .field("varenavn")
+                     .field("pris")
+                     .field("vareurl")
+                     .from("date")
+                     .from("itemsdata")
+                     .where("date.id = itemsdata.date_id")
+                     .where("date.date_id = " + today_str.quote() + " or date.date_id = " + past_date_str.quote())
+                     .toString()
+    
     db.parallelize(function() {
-            today = new Date();
-            today_str = today.toISOString().substr(0, 10);
-            past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
-
-            db.each(squel.select().field("date.date_id as itemdate").field("varenummer").field("varenavn").field("pris").field("vareurl")
-                                  .from("date").from("itemsdata")
-                                  .where("date.id = itemsdata.date_id")
-                                  .where("date.date_id = " + today_str.quote() + " or date.date_id = " + past_date_str.quote()).toString(), function(err, row)
+            db.each(query, function(err, row)
             {
-                if (err)
+                if (err) {
                     console.log(err);
+                }
                 else {
                         if (row.varenummer in tmp && tmp[row.varenummer] != row.pris) {
                             prices.push({ "varenummer" : row.varenummer, "varenavn": row.varenavn, "old_price": tmp[row.varenummer], "new_price" : row.pris})
@@ -116,8 +125,14 @@ function price_difference_lookup(days, callback) {
 
 
 function update_product_list() {
+    var query = squel.select()
+                     .field("distinct varenummer as n")
+                     .field("varenavn as name")
+                     .from("itemsdata")
+                     .toString()
+
     db.parallelize(function() {
-        db.each(squel.select().field("distinct varenummer as n").field("varenavn as name").from("itemsdata").toString(), function(err, row) {
+        db.each(query, function(err, row) {
             if (err)
                 console.log(err);
             else
@@ -145,14 +160,16 @@ function get_item_info(req, res) {
     var item_name = ""
     var item_data = []
 
-    var db = new sqlite3.Database('vinmonopolet.db');
+    //var db = new sqlite3.Database('vinmonopolet.db');
+    var query = squel.select().field("distinct date.date_id as date")
+                              .field("varenummer")
+                              .field("varenavn")
+                              .field("pris")
+                              .from("date").from("itemsdata")
+                              .where("varenummer=" + id + " and date.id = itemsdata.date_id").toString()
+                              
     db.serialize(function() {
-            db.each(squel.select().field("distinct date.date_id as date")
-                                  .field("varenummer")
-                                  .field("varenavn")
-                                  .field("pris")
-                                  .from("date").from("itemsdata")
-                                  .where("varenummer=" + id + " and date.id = itemsdata.date_id").toString(), function(err, row) {
+            db.each(query, function(err, row) {
                 if (err)
                     console.log(err)
                 else {

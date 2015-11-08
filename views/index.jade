@@ -27,6 +27,20 @@ html(ng-app="VinData")
                     td
                         a(href=val.vareurl)!=val.varenummer
                     td!=val.varenavn
+        thead
+            tr
+                th!="Varenummer"
+                th!="Varenavn"
+                th!="Old price"
+                th!="New price"
+        tbody
+            each val, index in diff_prices
+                tr
+                    td
+                        a(href=val.vareurl)!=val.varenummer
+                    td!=val.varenavn
+                    td!=val.old_price + "kr"
+                    td!=val.new_price + "kr"
         //each val, index in diff_products
         //    li= index + ': ' + val.varenummer + " " + val.varenavn
 

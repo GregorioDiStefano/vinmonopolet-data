@@ -111,7 +111,12 @@ function price_difference_lookup(days, callback) {
                 }
                 else {
                         if (row.varenummer in tmp && tmp[row.varenummer] != row.pris) {
-                            prices.push({ "varenummer" : row.varenummer, "varenavn": row.varenavn, "old_price": tmp[row.varenummer], "new_price" : row.pris})
+                            prices.push({ "varenummer" : row.varenummer,
+                                          "varenavn": row.varenavn,
+                                          "vareurl": row.vareurl,
+                                          "old_price": tmp[row.varenummer],
+                                          "new_price" : row.pris
+                                        })
                         } else {
                             tmp[row.varenummer] = row.pris;
                         }

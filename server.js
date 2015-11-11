@@ -87,22 +87,19 @@ function price_difference_lookup(days, callback) {
 
     var tmp = {};
     var prices = [];
-    
+
     var today = new Date();
     var today_str = today.toISOString().substr(0, 10);
     var past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
     var query = squel.select()
                      .field("date.date_id as itemdate")
-                     .field("varenummer")
-                     .field("varenavn")
-                     .field("pris")
-                     .field("vareurl")
+                     .field("itemsdata.*")
                      .from("date")
                      .from("itemsdata")
                      .where("date.id = itemsdata.date_id")
                      .where("date.date_id = " + today_str.quote() + " or date.date_id = " + past_date_str.quote())
                      .toString()
-    
+
     db.parallelize(function() {
             db.each(query, function(err, row)
             {
@@ -113,6 +110,8 @@ function price_difference_lookup(days, callback) {
                         if (row.varenummer in tmp && tmp[row.varenummer] != row.pris) {
                             prices.push({ "varenummer" : row.varenummer,
                                           "varenavn": row.varenavn,
+                                          "varetype": row.varetype,
+                                          "alkohol": row.alkohol,
                                           "vareurl": row.vareurl,
                                           "old_price": tmp[row.varenummer],
                                           "new_price" : row.pris
@@ -165,14 +164,11 @@ function get_item_info(req, res) {
     var item_name = ""
     var item_data = []
 
-    //var db = new sqlite3.Database('vinmonopolet.db');
     var query = squel.select().field("distinct date.date_id as date")
-                              .field("varenummer")
-                              .field("varenavn")
-                              .field("pris")
+                              .field("*.itemsdata")
                               .from("date").from("itemsdata")
                               .where("varenummer=" + id + " and date.id = itemsdata.date_id").toString()
-                              
+
     db.serialize(function() {
             db.each(query, function(err, row) {
                 if (err)

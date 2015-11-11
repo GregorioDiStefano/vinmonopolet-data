@@ -27,10 +27,14 @@ html(ng-app="VinData")
                     td
                         a(href=val.vareurl)!=val.varenummer
                     td!=val.varenavn
+
+    table(cellspacing=0)
         thead
             tr
                 th!="Varenummer"
                 th!="Varenavn"
+                th!="Varetype"
+                th!="Alkohol (%)"
                 th!="Old price"
                 th!="New price"
         tbody
@@ -39,6 +43,8 @@ html(ng-app="VinData")
                     td
                         a(href=val.vareurl)!=val.varenummer
                     td!=val.varenavn
+                    td!=val.varetype
+                    td!=val.alkohol
                     td!=val.old_price + "kr"
                     td!=val.new_price + "kr"
         //each val, index in diff_products

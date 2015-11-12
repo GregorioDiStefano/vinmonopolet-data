@@ -6,7 +6,9 @@ html(ng-app="VinData")
     script(src="/static/js/lookup.js")
     script(src="/static/js/Chart.js")
     script(src="/static/js/angular-chart.min.js")
+    script(src="/static/js/ng-table.min.js")
 
+    link(rel="stylesheet", href="/static/css/ng-table.css")
     link(rel='stylesheet', href='/static/css/pretty_table.css')
     link(rel='stylesheet', href='/static/css/ui-bootstrap-csp.css')
     link(rel='stylesheet', href='/static/css/bootstrap-combined.min.css')
@@ -14,8 +16,19 @@ html(ng-app="VinData")
 
   body
     h1!= "Vinmonopolet price history"
+
+    div(ng-controller="Table")
+        table(ng-table="Table.tableParams", class="table", show-filter="true")
+            tr(ng-repeat="user in data")
+                td(title="'Name'", filter="{ name: 'text'}", sortable="'name'")!="{{user.name}}"
+                td(title="'Age'", filter="{ age: 'number'}", sortable="'age'")!="{{user.age}}"
+
+
     div(class="container-fluid", ng-controller="TypeaheadCtrl")
         input(type="text", ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
+
+
+
     table(cellspacing=0)
         thead
             tr

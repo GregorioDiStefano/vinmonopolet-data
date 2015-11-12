@@ -1,5 +1,26 @@
-angular.module('VinData', ['ui.bootstrap', "chart.js"])
+angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
+
+    .controller("Table", function($scope, $http, NgTableParams) {
+
+
+           $scope.data = [{name: "Moroni", age: 50},
+                {name: "Simon", age: 43},
+                {name: "Jacob", age: 27},
+                {name: "Nephi", age: 29},
+                {name: "Christian", age: 34},
+                {name: "Tiancum", age: 43},
+                {name: "Jacob", age: 27}
+            ];
+
+        $scope.tableParams = new NgTableParams({}, { dataset: $scope.data });
+        console.log($scope.tableParams)
+    })
+
+
     .controller("TypeaheadCtrl", function($scope, $http, limitToFilter) {
+
+
+
 
     $scope.selected_item = undefined
     $scope.item_data = undefined

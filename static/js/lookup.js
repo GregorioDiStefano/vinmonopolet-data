@@ -1,6 +1,13 @@
 angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
+    .controller('ParentCtrl', function($scope) {
+        $scope.$on('HideTable',function(data){
+            $scope.hide_table = true;
+            console.log("a")
+        });
+    })
 
-    .controller("PriceDiffTable", function($scope, $http, $filter, NgTableParams) {
+    .controller("PriceDiffTable", function($scope, $controller, $http, $filter, NgTableParams) {
+        $controller('ParentCtrl', {$scope: $scope});
         $scope.tableParams = new NgTableParams({ page : 1, sorting : { varenavn : "asc" } }, {
             defaultSort: { varenavn: "asc" },
             getData: function ($defer, params) {
@@ -14,7 +21,9 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
         })
     })
 
-    .controller("NewProductsTable", function($scope, $http, $filter, NgTableParams) {
+    .controller("NewProductsTable", function($scope, $controller, $http, $filter, NgTableParams) {
+        $controller('ParentCtrl', {$scope: $scope});
+
         $scope.tableParams = new NgTableParams({ page : 1, sorting : { varenavn : "asc" } }, {
             defaultSort: { varenavn: "asc" },
             getData: function ($defer, params) {
@@ -29,33 +38,37 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
     })
 
 
-    .controller("TypeaheadCtrl", function($scope, $http, limitToFilter) {
+    .controller("TypeaheadCtrl", function($scope, $rootScope, $http, limitToFilter) {
 
+        $scope.selected_item = undefined
+        $scope.item_data = undefined
 
+        $scope.product = function(product) {
+            return $http.get("/api/get/products.json?s="+product).then(function(response){
+                response.data.forEach(function(e, idx, array)
+                {
+                    response.data[idx] = e[0] + ", " + e[1]
+                })
+                return limitToFilter(response.data, 15);
+            });
+        };
 
-
-    $scope.selected_item = undefined
-    $scope.item_data = undefined
-
-    $scope.product = function(product) {
-        return $http.get("/api/get/products.json?s="+product).then(function(response){
-            response.data.forEach(function(e, idx, array)
-            {
-                response.data[idx] = e[0] + ", " + e[1]
-            })
-            return limitToFilter(response.data, 15);
-        });
-    };
-
-    $scope.set_item = function(item) {
-        $scope.selected_item = item
-        return $http.get("/api/get/item_info.json?i="+item.split(",")[0]).then(function(response){
-            $scope.item_data = response.data
-            console.log($scope.item_data)
-            update_graph(1)
+        $scope.set_item = function(item) {
+            $rootScope.$broadcast('HideTable',{hideAlias: "tableHideAlias"});
+            $scope.selected_item = item
+            return $http.get("/api/get/item_info.json?i="+item.split(",")[0]).then(function(response){
+                $scope.item_data = response.data
+                console.log($scope.item_data)
+                $rootScope.$broadcast("ShowGraph", $scope.item_data)
             }
         )}
+    })
 
+    .controller("Graph", function($scope, $rootScope, $http) {
+
+        $scope.$on('ShowGraph',function(event, data) {
+            console.log("Populate graph with: ", data)
+        })
 
         $scope.chart_options = { scaleShowLabels : false, animation: false }
 
@@ -75,8 +88,8 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
         $scope.data = [
             [15, 79, 10, 87, 16, 35, 12]
         ];
-console.log("Updated!")
         }
-});
 
+
+    })
 

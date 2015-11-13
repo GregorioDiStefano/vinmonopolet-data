@@ -165,7 +165,7 @@ function get_item_info(req, res) {
     var item_data = []
 
     var query = squel.select().field("distinct date.date_id as date")
-                              .field("*.itemsdata")
+                              .field("itemsdata.*")
                               .from("date").from("itemsdata")
                               .where("varenummer=" + id + " and date.id = itemsdata.date_id").toString()
 

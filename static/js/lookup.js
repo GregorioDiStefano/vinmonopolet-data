@@ -1,19 +1,31 @@
 angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
 
-    .controller("Table", function($scope, $http, NgTableParams) {
+    .controller("PriceDiffTable", function($scope, $http, $filter, NgTableParams) {
+        $scope.tableParams = new NgTableParams({ page : 1, sorting : { varenavn : "asc" } }, {
+            defaultSort: { varenavn: "asc" },
+            getData: function ($defer, params) {
+                $http.get("/api/get/new_prices.json")
+                    .then(function(res) {
+                        var data = res.data
+                        var ordered = params.sorting() ? $filter('orderBy')(data, params.orderBy()) : data;
+                        $defer.resolve(ordered)
+                    })
+            }
+        })
+    })
 
-
-           $scope.data = [{name: "Moroni", age: 50},
-                {name: "Simon", age: 43},
-                {name: "Jacob", age: 27},
-                {name: "Nephi", age: 29},
-                {name: "Christian", age: 34},
-                {name: "Tiancum", age: 43},
-                {name: "Jacob", age: 27}
-            ];
-
-        $scope.tableParams = new NgTableParams({}, { dataset: $scope.data });
-        console.log($scope.tableParams)
+    .controller("NewProductsTable", function($scope, $http, $filter, NgTableParams) {
+        $scope.tableParams = new NgTableParams({ page : 1, sorting : { varenavn : "asc" } }, {
+            defaultSort: { varenavn: "asc" },
+            getData: function ($defer, params) {
+                $http.get("/api/get/new_products.json")
+                    .then(function(res) {
+                        var data = res.data
+                        var ordered = params.sorting() ? $filter('orderBy')(data, params.orderBy()) : data;
+                        $defer.resolve(ordered)
+                    })
+            }
+        })
     })
 
 

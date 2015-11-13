@@ -62,7 +62,7 @@ function products_difference(days, callback) {
     var past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
     var new_items = [];
 
-    var query = "SELECT distinct varenummer, varenavn, vareurl FROM itemsdata, date WHERE (date.id = itemsdata.date_id) AND (date.date_id = " + today_str.quote() + ") and varenummer not in (SELECT distinct varenummer FROM itemsdata, date where  (date.id = itemsdata.date_id) AND (date.date_id = "+ past_date_str.quote() +"))"
+    var query = "SELECT itemsdata.* FROM itemsdata, date WHERE (date.id = itemsdata.date_id) AND (date.date_id = " + today_str.quote() + ") and varenummer not in (SELECT distinct varenummer FROM itemsdata, date where  (date.id = itemsdata.date_id) AND (date.date_id = "+ past_date_str.quote() +"))"
 
     db.parallelize(function() {
         db.each(query, function(err, row) {
@@ -235,6 +235,16 @@ app.get('/api/*', function(req, res) {
                 return send_product_list(req, res)
             case "item_info.json":
                 return get_item_info(req, res)
+            case "new_prices.json":
+                price_difference_lookup(30, function(data) {
+                    return res.jsonp(data)
+                })
+                break
+            case "new_products.json":
+                products_difference(30, function(data) {
+                    return res.jsonp(data)
+                })
+                break
             default:
                 console.error("GET req: " + req.path + " failed")
                 res.status(403).send("Request not understood")

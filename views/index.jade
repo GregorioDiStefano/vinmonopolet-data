@@ -8,6 +8,7 @@ html(ng-app="VinData")
     script(src="/static/js/angular-chart.min.js")
     script(src="/static/js/ng-table.min.js")
 
+    link(rel="stylesheet", href="/static/css/style.css")
     link(rel="stylesheet", href="/static/css/ng-table.css")
     link(rel='stylesheet', href='/static/css/pretty_table.css')
     link(rel='stylesheet', href='/static/css/ui-bootstrap-csp.css')
@@ -17,53 +18,29 @@ html(ng-app="VinData")
   body
     h1!= "Vinmonopolet price history"
 
-    div(ng-controller="Table")
-        table(ng-table="Table.tableParams", class="table", show-filter="true")
-            tr(ng-repeat="user in data")
-                td(title="'Name'", filter="{ name: 'text'}", sortable="'name'")!="{{user.name}}"
-                td(title="'Age'", filter="{ age: 'number'}", sortable="'age'")!="{{user.age}}"
-
-
     div(class="container-fluid", ng-controller="TypeaheadCtrl")
         input(type="text", ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
 
+    h2!="Price differences detected in the last 30 days"
+    div(ng-controller="PriceDiffTable")
+        table(ng-table="tableParams", class="table", cellspacing=0)
+            tr(ng-repeat="item in $data")
+                td(title="'Varenummer'", filter="{ varenavn: 'number'}", sortable="'varenummer'")
+                    a(href="{{item.vareurl}}")!="{{item.varenavn}}"
+                td(title="'Varenavn'", filter="{ varenavn: 'text'}", sortable="'varenavn'")!= "{{item.varenavn}}"
+                td(title="'Alkohol'", filter="{ alkohol: 'number'}", sortable="'alkohol'")!= "{{item.alkohol}}" + "%"
+                td(title="'Varetype'", filter="{ varetype: 'text'}", sortable="'varetype'")!= "{{item.varetype}}"
+                td(title="'Ny Pris'", filter="{ varetype: 'number'}", sortable="'varetype'")!= "{{item.new_price}}"
+                td(title="'Gamle Pris'", filter="{ varetype: 'number'}", sortable="'varetype'")!= "{{item.old_price}}"
 
-
-    table(cellspacing=0)
-        thead
-            tr
-                th!="Varenummer"
-                th!="Varenavn"
-        tbody
-            each val, index in diff_products
-                tr
-                    td
-                        a(href=val.vareurl)!=val.varenummer
-                    td!=val.varenavn
-
-    table(cellspacing=0)
-        thead
-            tr
-                th!="Varenummer"
-                th!="Varenavn"
-                th!="Varetype"
-                th!="Alkohol (%)"
-                th!="Old price"
-                th!="New price"
-        tbody
-            each val, index in diff_prices
-                tr
-                    td
-                        a(href=val.vareurl)!=val.varenummer
-                    td!=val.varenavn
-                    td!=val.varetype
-                    td!=val.alkohol
-                    td!=val.old_price + "kr"
-                    td!=val.new_price + "kr"
-        //each val, index in diff_products
-        //    li= index + ': ' + val.varenummer + " " + val.varenavn
-
-        //each val, index in diff_prices
-        //    li= index + ': ' + val.varenummer + " " + val.varenavn
+    h2!="New items found in the last 30 days"
+    div(ng-controller="NewProductsTable")
+        table(ng-table="tableParams", class="table", cellspacing=0)
+            tr(ng-repeat="item in $data")
+                td(title="'Varenavn'", filter="{ varenavn: 'text'}", sortable="'varenavn'")
+                    a(href="{{item.vareurl}}")!="{{item.varenavn}}"
+                td(title="'Alkohol'", filter="{ alkohol: 'number'}", sortable="'alkohol'")!= "{{item.alkohol}}" + "%"
+                td(title="'Varetype'", filter="{ varetype: 'text'}", sortable="'varetype'")!= "{{item.varetype}}"
+                td(title="'Pris'", filter="{ varetype: 'number'}", sortable="'varetype'")!= "{{item.pris}}"
 
         //canvas(id="line", class="chart chart-line", chart-options="chart_options", chart-data="data" chart-labels="labels" chart-legend="false" chart-series="series" chart-click="onClick")

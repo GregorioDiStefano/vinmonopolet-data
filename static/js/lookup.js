@@ -1,8 +1,12 @@
 angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
     .controller('ParentCtrl', function($scope) {
-        $scope.$on('HideTable',function(data){
-            $scope.hide_table = true;
-            console.log("a")
+        $scope.$on('HideTable',function(event, data) {
+            if (data)
+                $scope.hide_table = true;
+            else {
+                console.log("Hide table")
+                $scope.hide_table = false;
+            }
         });
     })
 
@@ -39,7 +43,6 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
 
 
     .controller("TypeaheadCtrl", function($scope, $rootScope, $http, limitToFilter) {
-
         $scope.selected_item = undefined
         $scope.item_data = undefined
 
@@ -54,7 +57,7 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
         };
 
         $scope.set_item = function(item) {
-            $rootScope.$broadcast('HideTable',{hideAlias: "tableHideAlias"});
+            $rootScope.$broadcast('HideTable', true);
             $scope.selected_item = item
             return $http.get("/api/get/item_info.json?i="+item.split(",")[0]).then(function(response){
                 $scope.item_data = response.data
@@ -64,7 +67,12 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
         )}
     })
 
-    .controller("Graph", function($scope, $rootScope, $http) {
+    .controller("Graph", function($scope, $controller, $rootScope, $http) {
+        $controller('ParentCtrl', {$scope: $scope});
+
+        $scope.back_to_main = function() {
+            $rootScope.$broadcast("HideTable", false)
+        }
 
         $scope.$on('ShowGraph',function(event, data) {
             console.log("Populate graph with: ", data)
@@ -92,4 +100,3 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
 
 
     })
-

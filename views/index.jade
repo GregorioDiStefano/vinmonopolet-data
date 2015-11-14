@@ -19,7 +19,7 @@ html(ng-app="VinData")
     h1!= "Vinmonopolet price history"
 
     div(class="container-fluid", ng-controller="TypeaheadCtrl")
-        input(type="text", ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
+        input(type="text", ng-blur="leave_search()" ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
 
     div(ng-controller="PriceDiffTable", ng-hide="hide_table")
         h2!="Price differences detected in the last 30 days"
@@ -43,5 +43,6 @@ html(ng-app="VinData")
                 td(title="'Varetype'", filter="{ varetype: 'text'}", sortable="'varetype'")!= "{{item.varetype}}"
                 td(title="'Pris'", filter="{ varetype: 'number'}", sortable="'varetype'")!= "{{item.pris}}"
 
-    div(ng-controller="Graph", ng-hide="hide_table")
+    div(ng-controller="Graph", ng-show="hide_table")
+        h2(ng-click="back_to_main()")!= "&#8678; back to main page"
         canvas(id="line", class="chart chart-line", chart-options="chart_options", chart-data="data" chart-labels="labels" chart-legend="false" chart-series="series" chart-click="onClick")

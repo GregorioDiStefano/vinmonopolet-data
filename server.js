@@ -3,8 +3,9 @@ var express = require("express")
 var compression = require('compression')
 var squel = require("squel")
 var app = express()
-var NodeCache = require( "node-cache" );
+var NodeCache = require("node-cache");
 var cache = new NodeCache();
+require("colors")
 var _ = require('underscore');
 
 app.set('view engine', 'jade');
@@ -18,16 +19,36 @@ if (app.get('env') === 'development') {
 
 var product_list = []; //mapping would be easier to work with
 var db = new sqlite3.Database('vinmonopolet.db');
+var most_recent_date;
 
 String.prototype.quote = (function(){
     return '"' + this + '"';
 })
 
-function check_database() {
+setInterval(update_product_list, 1000 * 60 * 60)
+update_product_list()
+
+check_database(function(recent_date, recent_date_id) {
+    if (recent_date && recent_date_id) {
+        console.log(("Datebase not recent! Data being used is from: " + most_recent_date).red)
+        most_recent_date = recent_date
+    }
+    else {
+        console.log("Database running with latest data!".green)
+        most_recent_date = undefined
+    }
+})
+
+setInterval(check_database, 1000 * 60 * 5)
+
+
+function check_database(cb) {
     var today = new Date();
     var today_str = today.toISOString().substr(0, 10);
 
     var error = false;
+
+    // most recent date in the database
     var query = squel.select("id").from("date order by id desc limit 1").toString()
 
     db.parallelize(function() {
@@ -41,11 +62,15 @@ function check_database() {
                     error = true;
                     var details = "expected: " + today_str + " found: " + row.date_id;
                     console.error("Most recent data not imported to database: " + details);
+                    //call callback with last date_id in the database
+                    cb(row.date_id, row.id)
                 }
             }
         }, function() {
-                if (!error)
+                if (!error) {
                     console.log("Database looks okay.");
+                    cb()
+                }
         })
     })
 }
@@ -62,7 +87,7 @@ function products_difference(days, callback) {
 
 
     var today = new Date();
-    var today_str = today.toISOString().substr(0, 10);
+    var today_str = most_recent_date || today.toISOString().substr(0, 10);
     var past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
     var new_items = [];
 
@@ -93,7 +118,7 @@ function price_difference_lookup(days, callback) {
     var prices = [];
 
     var today = new Date();
-    var today_str = today.toISOString().substr(0, 10);
+    var today_str = most_recent_date || today.toISOString().substr(0, 10);
     var past_date_str = new Date(today.setDate(today.getDate() - days)).toISOString().substr(0, 10);
     var query = squel.select()
                      .field("date.date_id as itemdate")
@@ -158,9 +183,6 @@ function update_product_list() {
     });
 }
 
-update_product_list()
-check_database()
-setInterval(update_product_list, 1000 * 60 * 60)
 
 function get_item_info(req, res) {
     var id = req.query.i
@@ -173,7 +195,8 @@ function get_item_info(req, res) {
     var query = squel.select().field("distinct date.date_id as date")
                               .field("itemsdata.*")
                               .from("date").from("itemsdata")
-                              .where("varenummer=" + id + " and date.id = itemsdata.date_id").toString()
+                              .where("varenummer=" + id + " and date.id = itemsdata.date_id")
+                              .toString()
 
     db.serialize(function() {
             db.each(query, function(err, row) {

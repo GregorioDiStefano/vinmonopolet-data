@@ -97,19 +97,22 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
 
 
         function update_graph(item_name, item_data) {
-            $scope.chart_options = { scaleShowLabels : false, animation: false, responsive: true, maintainAspectRatio: false  }
+
+
+            $scope.chart_options = { scaleShowLabels : false,
+                                     animation: false,
+                                     responsive: true,
+                                     maintainAspectRatio: false,
+                                     scaleOverride : true
+                                   }
             $scope.labels = []
             $scope.data = []
-
             var tmp_data = []
 
-            console.log("a: " , item_data)
             item_data.forEach(function(e, idx) {
-                console.log(e["date"])
                 $scope.labels.push(e["date"])
                 tmp_data.push(e["price"])
             })
-
 
             //calculate start value
             var y_start = tmp_data.sort()[0] * 0.80
@@ -120,26 +123,10 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
             $scope.chart_options["scaleStepWidth"] = y_max
 
             $scope.chart_options["scaleSteps"] = .5
-            $scope.chart_options["scaleOverride"] = true
 
             $scope.data.push(tmp_data)
-            console.log($scope.labels)
 
-
-
-
-            $scope.onClick = function (points, evt) {
-            console.log(points, evt);
-                $scope.$apply();
             }
+        })
 
-            function update_graph(data) {
-                $scope.labels = ["2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", "2015-07-01", "2015-08-01", new Date(2015, 10, 1), new Date(2015, 11, 1)];
 
-            $scope.data = [
-                [15, 79, 10, 87, 16, 35, 12]
-            ];
-            }
-        }
-
-    })

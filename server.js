@@ -28,18 +28,21 @@ String.prototype.quote = (function(){
 setInterval(update_product_list, 1000 * 60 * 60)
 update_product_list()
 
-check_database(function(recent_date, recent_date_id) {
-    if (recent_date && recent_date_id) {
-        console.log(("Datebase not recent! Data being used is from: " + most_recent_date).red)
-        most_recent_date = recent_date
-    }
-    else {
-        console.log("Database running with latest data!".green)
-        most_recent_date = undefined
-    }
-})
+function do_check_db() {
+    check_database(function(recent_date, recent_date_id) {
+        if (recent_date && recent_date_id) {
+            console.log(("Datebase not recent! Data being used is from: " + most_recent_date).red)
+            most_recent_date = recent_date
+        }
+        else {
+            console.log("Database running with latest data!".green)
+            most_recent_date = undefined
+        }
+    })
+}
 
-setInterval(check_database, 1000 * 60 * 5)
+do_check_db()
+setInterval(function() { do_check_db(); }, 1000 * 60 * 15);
 
 
 function check_database(cb) {

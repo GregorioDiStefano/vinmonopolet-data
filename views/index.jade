@@ -12,7 +12,7 @@ html(ng-app="VinData")
     link(rel="stylesheet", href="/static/css/ng-table.css")
     link(rel='stylesheet', href='/static/css/pretty_table.css')
     link(rel='stylesheet', href='/static/css/ui-bootstrap-csp.css')
-    link(rel='stylesheet', href='/static/css/bootstrap-combined.min.css')
+    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css')
     link(rel='stylesheet', href='/static/css/angular-chart.min.css')
 
   body
@@ -23,7 +23,7 @@ html(ng-app="VinData")
 
     div(ng-controller="PriceDiffTable", ng-hide="hide_table")
         h2!="Price differences detected in the last 30 days"
-        table(ng-table="tableParams", class="table", cellspacing=0)
+        table(ng-table="tableParams", class="table table-bordered table-striped table-condensed", cellspacing=0)
             tr(ng-repeat="item in $data")
                 td(title="'Varenummer'", filter="{ varenavn: 'number'}", sortable="'varenummer'")
                     a(href="{{item.vareurl}}")!="{{item.varenavn}}"
@@ -35,7 +35,7 @@ html(ng-app="VinData")
 
     div(ng-controller="NewProductsTable", ng-hide="hide_table")
         h2!="New items found in the last 30 days"
-        table(ng-table="tableParams", class="table", cellspacing=0)
+        table(ng-table="tableParams", class="table table-bordered table-striped table-condensed", cellspacing=0)
             tr(ng-repeat="item in $data")
                 td(title="'Varenavn'", filter="{ varenavn: 'text'}", sortable="'varenavn'")
                     a(href="{{item.vareurl}}")!="{{item.varenavn}}"

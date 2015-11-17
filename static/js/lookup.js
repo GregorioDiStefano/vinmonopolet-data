@@ -12,15 +12,22 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
 
     .controller("PriceDiffTable", function($scope, $controller, $http, $filter, NgTableParams) {
         $controller('ParentCtrl', {$scope: $scope});
-        $scope.tableParams = new NgTableParams({ page : 1, sorting : { varenavn : "asc" } }, {
-            defaultSort: { varenavn: "asc" },
-            getData: function ($defer, params) {
-                $http.get("/api/get/new_prices.json")
-                    .then(function(res) {
-                        var data = res.data
-                        var ordered = params.sorting() ? $filter('orderBy')(data, params.orderBy()) : data;
-                        $defer.resolve(ordered)
-                    })
+        $scope.tableParams = new NgTableParams(
+            {
+                sorting : { varenavn : "asc" },
+                count: 15,
+                page: 1
+            },
+            {
+                defaultSort: { varenavn: "asc" },
+                getData: function ($defer, params) {
+                    $http.get("/api/get/new_prices.json")
+                        .then(function(res) {
+                            var data = res.data
+                            var ordered = params.sorting() ? $filter('orderBy')(data, params.orderBy()) : data;
+                            params.total(ordered.length)
+                            $defer.resolve(ordered.slice((params.page() - 1) * params.count(), params.page() * params.count()))
+                        })
             }
         })
     })
@@ -28,15 +35,22 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
     .controller("NewProductsTable", function($scope, $controller, $http, $filter, NgTableParams) {
         $controller('ParentCtrl', {$scope: $scope});
 
-        $scope.tableParams = new NgTableParams({ page : 1, sorting : { varenavn : "asc" } }, {
-            defaultSort: { varenavn: "asc" },
-            getData: function ($defer, params) {
-                $http.get("/api/get/new_products.json")
-                    .then(function(res) {
-                        var data = res.data
-                        var ordered = params.sorting() ? $filter('orderBy')(data, params.orderBy()) : data;
-                        $defer.resolve(ordered)
-                    })
+        $scope.tableParams = new NgTableParams(
+            {
+                sorting : { varenavn : "asc" },
+                count: 25,
+                page : 1
+            },
+            {
+                defaultSort: { varenavn: "asc" },
+                getData: function ($defer, params) {
+                    $http.get("/api/get/new_products.json")
+                        .then(function(res) {
+                            var data = res.data
+                            var ordered = params.sorting() ? $filter('orderBy')(data, params.orderBy()) : data;
+                            params.total(ordered.length)
+                            $defer.resolve(ordered.slice((params.page() - 1) * params.count(), params.page() * params.count()))
+                        })
             }
         })
     })
@@ -76,27 +90,56 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
 
         $scope.$on('ShowGraph',function(event, data) {
             console.log("Populate graph with: ", data)
+            item_name = Object.keys(data)
+            item_data = data[item_name]
+            update_graph(item_name, item_data)
         })
 
-        $scope.chart_options = { scaleShowLabels : false, animation: false }
 
-        $scope.labels = ["2015-01-01", "2015-02-01", "2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", new Date(2015, 5, 1), new Date(2015, 6, 1)];
-        $scope.data = [
-            [65, 59, 80, 81, 56, 55, 40]
-        ];
+        function update_graph(item_name, item_data) {
+            $scope.chart_options = { scaleShowLabels : false, animation: false, responsive: true, maintainAspectRatio: false  }
+            $scope.labels = []
+            $scope.data = []
 
-        $scope.onClick = function (points, evt) {
-        console.log(points, evt);
-            $scope.$apply();
+            var tmp_data = []
+
+            console.log("a: " , item_data)
+            item_data.forEach(function(e, idx) {
+                console.log(e["date"])
+                $scope.labels.push(e["date"])
+                tmp_data.push(e["price"])
+            })
+
+
+            //calculate start value
+            var y_start = tmp_data.sort()[0] * 0.80
+            $scope.chart_options["scaleStartValue"] = y_start
+
+            //calculate max value
+            var y_max = tmp_data.sort()[(tmp_data.length - 1)] * 1.20
+            $scope.chart_options["scaleStepWidth"] = y_max
+
+            $scope.chart_options["scaleSteps"] = .5
+            $scope.chart_options["scaleOverride"] = true
+
+            $scope.data.push(tmp_data)
+            console.log($scope.labels)
+
+
+
+
+            $scope.onClick = function (points, evt) {
+            console.log(points, evt);
+                $scope.$apply();
+            }
+
+            function update_graph(data) {
+                $scope.labels = ["2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", "2015-07-01", "2015-08-01", new Date(2015, 10, 1), new Date(2015, 11, 1)];
+
+            $scope.data = [
+                [15, 79, 10, 87, 16, 35, 12]
+            ];
+            }
         }
-
-        function update_graph(data) {
-            $scope.labels = ["2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", "2015-07-01", "2015-08-01", new Date(2015, 10, 1), new Date(2015, 11, 1)];
-
-        $scope.data = [
-            [15, 79, 10, 87, 16, 35, 12]
-        ];
-        }
-
 
     })

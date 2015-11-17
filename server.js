@@ -1,5 +1,6 @@
 var sqlite3 = require('sqlite3').verbose();
 var express = require("express")
+var compression = require('compression')
 var squel = require("squel")
 var app = express()
 var NodeCache = require( "node-cache" );
@@ -9,6 +10,7 @@ var _ = require('underscore');
 app.set('view engine', 'jade');
 app.set('views', './views');
 app.use('/static', express.static('static'));
+app.use(compression())
 
 if (app.get('env') === 'development') {
   app.locals.pretty = true;
@@ -28,7 +30,6 @@ function check_database() {
     var error = false;
     var query = squel.select("id").from("date order by id desc limit 1").toString()
 
-    //check if most recent date is in db
     db.parallelize(function() {
         db.each(query, function(err, row) {
             if (err) {
@@ -53,9 +54,12 @@ function products_difference(days, callback) {
     var cache_key = arguments.callee.name;
     value = cache.get(cache_key);
 
+
     if (value !== undefined) {
+        console.log("Cached hit")
         return callback(value);
     }
+
 
     var today = new Date();
     var today_str = today.toISOString().substr(0, 10);
@@ -134,13 +138,15 @@ function update_product_list() {
                      .field("varenavn as name")
                      .from("itemsdata")
                      .toString()
-
+    product_list = [];
     db.parallelize(function() {
         db.each(query, function(err, row) {
             if (err)
                 console.log(err);
-            else
+            else {
+
                 product_list.push([row.n, row.name])
+            }
         }, function() {
                 if (product_list.length === 0) {
                     console.log("No products found. Database problem!");
@@ -157,7 +163,7 @@ check_database()
 setInterval(update_product_list, 1000 * 60 * 60)
 
 function get_item_info(req, res) {
-    id = req.query.i
+    var id = req.query.i
     if (isNaN(id))
         return res.status(403).send("Malformed request")
 
@@ -186,8 +192,8 @@ function get_item_info(req, res) {
 }
 
 function send_product_list(req, res) {
-    query = req.query.s
-    rtn_data = []
+    var query = req.query.s
+    var rtn_data = []
 
     if (query.length < 3)
         return res.jsonp(rtn_data)
@@ -201,28 +207,8 @@ function send_product_list(req, res) {
 }
 
 app.get('/', function (req, res) {
-    var finished = _.after(2, do_render);
-    var diff_prices
-    var diff_products
-
-    price_difference_lookup(30, function(data) {
-        diff_prices = data
-        finished()
-    })
-
-    products_difference(30, function(data) {
-        diff_products = data
-        finished()
-    })
-
-    function do_render() {
-        res.render('index.jade', {
-                                   diff_products : diff_products,
-                                   diff_prices : diff_prices
-                                 });
-    }
+    res.render('index.jade')
 });
-
 
 app.get('/api/*', function(req, res) {
     path = req.path

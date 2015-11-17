@@ -6,7 +6,6 @@ var app = express()
 var NodeCache = require("node-cache");
 var cache = new NodeCache();
 require("colors")
-var _ = require('underscore');
 
 app.set('view engine', 'jade');
 app.set('views', './views');
@@ -237,7 +236,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/api/*', function(req, res) {
-    path = req.path
+    var path = req.path
 
     if (path.split("/")[2] == "get")
     {

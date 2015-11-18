@@ -4,6 +4,25 @@ table {
 }
 
 canvas#line {
-    width: 75% !important;
-    height: 75% !important;
+    margin-left: auto;
+    margin-right: auto;
+    width: 523px;
+    height: 261px;
 }
+
+h1, h2 {
+    padding-left: 10px;
+}
+
+.ng-table-pager{
+    width: 90%;
+    padding-left: 30px;
+}
+
+::-webkit-input-placeholder {
+    text-align: center;
+}
+
+
+
+

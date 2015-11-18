@@ -2,24 +2,24 @@ html(ng-app="VinData")
   head
     title!= title
     script(src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js")
-    script(src="/static/js/ui-bootstrap-tpls.min.js")
+    script(src="/static/js/external/ui-bootstrap-tpls.min.js")
     script(src="/static/js/lookup.js")
-    script(src="/static/js/Chart.js")
-    script(src="/static/js/angular-chart.min.js")
-    script(src="/static/js/ng-table.min.js")
+    script(src="/static/js/external/Chart.js")
+    script(src="/static/js/external/angular-chart.min.js")
+    script(src="/static/js/external/ng-table.min.js")
 
     link(rel="stylesheet", href="/static/css/style.css")
-    link(rel="stylesheet", href="/static/css/ng-table.css")
-    link(rel='stylesheet', href='/static/css/pretty_table.css')
-    link(rel='stylesheet', href='/static/css/ui-bootstrap-csp.css')
+    link(rel="stylesheet", href="/static/css/external/ng-table.css")
+    link(rel='stylesheet', href='/static/css/external/pretty_table.css')
+    link(rel='stylesheet', href='/static/css/external/ui-bootstrap-csp.css')
     link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css')
-    link(rel='stylesheet', href='/static/css/angular-chart.min.css')
+    link(rel='stylesheet', href='/static/css/external/angular-chart.min.css')
 
   body
     h1!= "Vinmonopolet price history"
 
     div(class="container-fluid", ng-controller="TypeaheadCtrl")
-        input(type="text", ng-blur="leave_search()" ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
+        input(type="text", placeholder="Product search", ng-blur="leave_search()" ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
 
     div(ng-controller="PriceDiffTable", ng-hide="hide_table")
         h2!="Price differences detected in the last 30 days"
@@ -45,4 +45,8 @@ html(ng-app="VinData")
 
     div(ng-controller="Graph", ng-show="hide_table")
         h2(ng-click="back_to_main()")!= "&#8678; back to main page"
-        canvas(id="line", class="chart chart-line", chart-options="chart_options", chart-data="data" chart-labels="labels" chart-legend="false" chart-series="series" chart-click="onClick")
+        canvas(id="line", width="350", height="350",class="chart chart-line", chart-options="chart_options", chart-data="data" chart-labels="labels" chart-legend="false" chart-series="series" chart-click="onClick")
+        div(id="email")
+            label(for="email")!="Enter email for price-change notifications"
+            input(type="text", id="email", placeholder="e-mail")
+            span!="&#9654;"

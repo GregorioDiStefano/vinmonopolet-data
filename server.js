@@ -60,6 +60,7 @@ function check_database(cb) {
                 error = true;
             }
             else {
+                    console.log(row.date_id, today_str)
                 if (row.date_id != today_str) {
                     error = true;
                     var details = "expected: " + today_str + " found: " + row.date_id;

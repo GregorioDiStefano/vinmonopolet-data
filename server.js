@@ -10,14 +10,34 @@ var sqlite3 = require('sqlite3').verbose(),
 
 var db_file = "vinmonopolet.db",
     product_list = [],
-    db = new sqlite3.Database(db_file),
     most_recent_date;
+
 
 app.set('view engine', 'jade');
 app.set('views', './views');
 app.use('/static', express.static('static'));
 jade.renderFile('./views/index.jade', { cache : true });
 app.use(compression());
+
+var env = process.env.NODE_ENV || 'development';
+
+if (env == "test") {
+    console.log("Test enviornment".yellow)
+    db_file = "./tests/test.db"
+    db = new sqlite3.Database(db_file)
+} else if (env == "development") {
+    console.log("Development enviornment".rainbow)
+    db = new sqlite3.Database(db_file)
+
+    do_check_db()
+    setInterval(function() { do_check_db(); }, 1000 * 60 * 15);
+} else if (env == "production") {
+    console.log("Production enviornment".green)
+    db = new sqlite3.Database(db_file)
+
+    do_check_db()
+    setInterval(function() { do_check_db(); }, 1000 * 60 * 15);
+}
 
 String.prototype.quote = (function(){
     return '"' + this + '"';
@@ -26,7 +46,7 @@ String.prototype.quote = (function(){
 setInterval(update_product_list, 1000 * 60 * 60)
 update_product_list()
 
-function do_check_db() {
+function do_check_db(cb) {
     check_database(function(recent_date, recent_date_id) {
         if (recent_date && recent_date_id) {
             most_recent_date = recent_date
@@ -35,11 +55,10 @@ function do_check_db() {
             console.log("Database running with latest data!".green)
             most_recent_date = undefined
         }
+        cb && cb()
     })
 }
 
-do_check_db()
-setInterval(function() { do_check_db(); }, 1000 * 60 * 15);
 
 function check_database(cb) {
     var today = new Date();

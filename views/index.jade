@@ -3,23 +3,23 @@ html(ng-app="VinData")
     title!= title
     script(src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js")
     script(src="/static/js/external/ui-bootstrap-tpls.min.js")
-    script(src="/static/js/lookup.js")
+    script(src="/static/js/app.js")
     script(src="/static/js/external/Chart.js")
     script(src="/static/js/external/angular-chart.min.js")
     script(src="/static/js/external/ng-table.min.js")
 
-    link(rel="stylesheet", href="/static/css/style.css")
     link(rel="stylesheet", href="/static/css/external/ng-table.css")
     link(rel='stylesheet', href='/static/css/external/pretty_table.css')
     link(rel='stylesheet', href='/static/css/external/ui-bootstrap-csp.css')
     link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css')
     link(rel='stylesheet', href='/static/css/external/angular-chart.min.css')
+    link(rel="stylesheet", href="/static/css/style.css")
 
   body
     h1!= "Vinmonopolet price history"
 
     div(class="container-fluid", ng-controller="TypeaheadCtrl")
-        input(type="text", placeholder="Product search", ng-blur="leave_search()" ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
+        input(type="text", size="120", placeholder="Product search", ng-blur="leave_search()" ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
 
     div(ng-controller="PriceDiffTable", ng-hide="hide_table")
         h2!="Price differences detected in the last 30 days"

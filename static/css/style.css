@@ -23,6 +23,12 @@ h1, h2 {
     text-align: center;
 }
 
+input {
+    display: block;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
 
 
 

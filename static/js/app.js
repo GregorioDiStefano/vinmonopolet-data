@@ -4,7 +4,6 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
             if (data)
                 $scope.hide_table = true;
             else {
-                console.log("Hide table")
                 $scope.hide_table = false;
             }
         });
@@ -64,7 +63,10 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
             return $http.get("/api/get/products.json?s="+product).then(function(response){
                 response.data.forEach(function(e, idx, array)
                 {
-                    response.data[idx] = e[0] + ", " + e[1]
+                    var varenummer = e[0],
+                        varenavn = e[1],
+                        volume = e[2] + "L"
+                    response.data[idx] = varenummer + ", " + varenavn + ", " + volume
                 })
                 return limitToFilter(response.data, 15);
             });
@@ -98,13 +100,11 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
 
         function update_graph(item_name, item_data) {
 
-
             $scope.chart_options = { scaleShowLabels : false,
                                      animation: false,
                                      responsive: true,
                                      maintainAspectRatio: false,
-                                     scaleOverride : true
-                                   }
+                                     scaleOverride : true }
             $scope.labels = []
             $scope.data = []
             var tmp_data = []
@@ -114,16 +114,16 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
                 tmp_data.push(e["price"])
             })
 
+            console.log(tmp_data)
             //calculate start value
-            var y_start = tmp_data.sort()[0] * 0.90
+            var y_start = tmp_data.concat().sort()[0] * 0.90
             $scope.chart_options["scaleStartValue"] = y_start
 
             //calculate max value
-            var y_max = tmp_data.sort()[(tmp_data.length - 1)] * 1.10
+            var y_max = tmp_data.concat().sort()[(tmp_data.length - 1)] * 1.10
             $scope.chart_options["scaleStepWidth"] = y_max
 
             $scope.chart_options["scaleSteps"] = .25
-
             $scope.data.push(tmp_data)
 
             }

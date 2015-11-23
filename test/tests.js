@@ -14,7 +14,7 @@ var get_price_difference = model_export.__get__('price_difference'),
     get_get_useful_dates = model_export.__get__('get_useful_dates');
 
 before(function () {
-    get_open_db("./tests/test.db")
+    get_open_db("./test/test.db")
 })
 
 before(function (done) {

@@ -22,7 +22,7 @@ html(ng-app="VinData")
         input(type="text", size="120", placeholder="Product search", ng-blur="leave_search()" ng-model="result", typeahead-on-select="set_item($item)", typeahead="suggestion for suggestion in product($viewValue)")
 
     div(ng-controller="PriceDiffTable", ng-hide="hide_table")
-        h2!="Price differences detected in the last 30 days"
+        h2 Price differences detected in the last #{days_passed} days
         table(ng-table="tableParams", class="table table-bordered table-striped table-condensed", cellspacing=0)
             tr(ng-repeat="item in $data")
                 td(title="'Varenummer'", filter="{ varenavn: 'number'}", sortable="'varenummer'")
@@ -34,7 +34,7 @@ html(ng-app="VinData")
                 td(title="'Gamle Pris'", filter="{ varetype: 'number'}", sortable="'varetype'")!= "{{item.old_price}}"
 
     div(ng-controller="NewProductsTable", ng-hide="hide_table")
-        h2!="New items found in the last 30 days"
+        h2 New items found in the last #{days_passed} days
         table(ng-table="tableParams", class="table table-bordered table-striped table-condensed", cellspacing=0)
             tr(ng-repeat="item in $data")
                 td(title="'Varenavn'", filter="{ varenavn: 'text'}", sortable="'varenavn'")

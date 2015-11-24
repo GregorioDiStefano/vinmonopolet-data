@@ -173,19 +173,19 @@ function check_database(cb) {
 
 
 function do_check_db(cb) {
-    check_database(function(db_dates) {
-        var most_recent_date = db_dates[0]["row.date_id"]
-        var least_recent_date = db_dates[db_dates.length - 1]["row.date_id"]
-        set_useful_dates(helpers.UsefulDates(most_recent_date, least_recent_date))
-
-        if (most_recent_date != useful_dates.today_str ) {
-            console.log(("Datebase not recent! Data being used is from: " + most_recent_date).red)
-        } else {
-            console.log("Database running with latest data!".green)
-            most_recent_date = undefined
-        }
-        cb && cb()
-    })
+        check_database(function(db_dates) {
+            var most_recent_date = db_dates[0]["row.date_id"]
+            var least_recent_date = db_dates[db_dates.length - 1]["row.date_id"]
+            set_useful_dates(helpers.UsefulDates(most_recent_date, least_recent_date))
+            console.log(get_useful_dates())
+            if (most_recent_date != useful_dates.today_str ) {
+                console.log(("Datebase not recent! Data being used is from: " + most_recent_date).red)
+            } else {
+                console.log("Database running with latest data!".green)
+                most_recent_date = undefined
+            }
+            cb && cb()
+        })
 }
 
 function set_useful_dates(dates) { useful_dates = dates;}

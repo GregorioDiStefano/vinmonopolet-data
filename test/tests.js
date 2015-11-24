@@ -1,23 +1,19 @@
 // many tests missing, more coming...
 
-
 process.env.NODE_ENV = 'test'
 
 var rewire = require('rewire'),
     assert = require('assert'),
-    model_export = rewire("../model")
+    model_export = rewire("../model");
 
 var get_price_difference = model_export.__get__('price_difference'),
     get_product_difference = model_export.__get__('products_difference'),
-    get_open_db = model_export.__get__('open_db');
-    get_do_check_db = model_export.__get__('do_check_db');
+    get_open_db = model_export.__get__('open_db'),
+    get_do_check_db = model_export.__get__('do_check_db'),
     get_get_useful_dates = model_export.__get__('get_useful_dates');
 
-before(function () {
-    get_open_db("./test/test.db")
-})
-
 before(function (done) {
+    get_open_db("./test/test.db")
     get_do_check_db(function() {
         done()
     })

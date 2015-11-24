@@ -2,10 +2,12 @@ var squel = require("squel"),
     sqlite3 = require("sqlite3").verbose(),
     NodeCache = require("node-cache"),
     cache = new NodeCache(),
-    helpers = require("./helpers");
+    helpers = require("./helpers"),
+    Promise = require('promise');
 
-var useful_dates;
-var db;
+var useful_dates,
+    db,
+    env = process.env.NODE_ENV;
 
 function open_db(filename) {
     db = new sqlite3.Database(filename);
@@ -47,7 +49,7 @@ function price_difference(days, callback) {
     var cache_key = arguments.callee.name;
     var value = cache.get(cache_key);
 
-    if (value !== undefined) {
+    if (value !== undefined && env != "test") {
         return callback(value);
     }
 
@@ -94,12 +96,14 @@ function products_difference(days, callback) {
     var cache_key = arguments.callee.name;
     value = cache.get(cache_key);
 
-    if (value !== undefined) {
+    if (value !== undefined && env != "test") {
         return callback(value);
     }
 
-    var past_date_str = useful_dates.past_date(days)
+    var past_date_str = useful_dates.past_date(days);
     var new_items = [];
+
+    //raw sql, since it doesnt like better using squel
     var query = "SELECT itemsdata.* FROM itemsdata, date WHERE (date.id = itemsdata.date_id) AND (date.date_id = " + useful_dates.most_recent.quote() + ") and varenummer not in (SELECT distinct varenummer FROM itemsdata, date where  (date.id = itemsdata.date_id) AND (date.date_id = "+ past_date_str.quote() +"))"
 
     db.serialize(function() {
@@ -166,29 +170,36 @@ function check_database(cb) {
                     cb(db_dates)
                 } else {
                     console.log("Database is in error state");
+                    cb()
                 }
         })
     })
 }
 
-
+//ugly, needs to be improved
 function do_check_db(cb) {
         check_database(function(db_dates) {
-            var most_recent_date = db_dates[0]["row.date_id"]
-            var least_recent_date = db_dates[db_dates.length - 1]["row.date_id"]
-            set_useful_dates(helpers.UsefulDates(most_recent_date, least_recent_date))
-            console.log(get_useful_dates())
-            if (most_recent_date != useful_dates.today_str ) {
-                console.log(("Datebase not recent! Data being used is from: " + most_recent_date).red)
-            } else {
-                console.log("Database running with latest data!".green)
-                most_recent_date = undefined
+            try {
+                var most_recent_date = db_dates[0]["row.date_id"]
+                var least_recent_date = db_dates[db_dates.length - 1]["row.date_id"]
+                set_useful_dates(helpers.UsefulDates(most_recent_date, least_recent_date))
+            } catch (e) {
+                console.log("Error setting database dates")
+                cb && cb()
             }
-            cb && cb()
+
+            if (most_recent_date != useful_dates.today_str ) {
+                console.log(("Datebase not recent! Data being used is from: " + most_recent_date))
+            } else {
+                console.log("Database running with latest data!")
+            }
+            cb && cb() //notify mocha this is done
         })
 }
 
-function set_useful_dates(dates) { useful_dates = dates;}
+function set_useful_dates(dates) {
+    useful_dates = dates;
+}
 
 //for testing
 function get_useful_dates() { return useful_dates; }
@@ -202,4 +213,3 @@ module.exports.update_product_list = update_product_list
 
 module.exports.price_difference = price_difference
 module.exports.products_difference = products_difference
-

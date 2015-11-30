@@ -121,14 +121,15 @@ function products_difference(days, callback) {
     });
 }
 
-function update_product_list() {
+function update_product_list(cb) {
+
+    product_list = [];
     var query = squel.select()
                      .field("distinct varenummer as n")
                      .field("varenavn as name")
                      .field("volum as volume")
                      .from("itemsdata")
                      .toString();
-    product_list = [];
 
     db.serialize(function() {
         db.each(query, function(err, row) {
@@ -143,6 +144,7 @@ function update_product_list() {
                    console.log("No products found. Database problem!");
                } else {
                    console.log("Product list complete. Item count: ", product_list.length);
+                   cb && cb();
                }
         });
     });

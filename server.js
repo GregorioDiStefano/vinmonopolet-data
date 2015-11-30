@@ -41,20 +41,19 @@ if (env == "test") {
 setInterval(model.update_product_list, 1000 * 60 * 60);
 model.update_product_list();
 
+function send_product_list(query, cb) {
+    var rtn_data = [];
 
-function send_product_list(req, res) {
-    var query = req.query.s,
-        rtn_data = [];
-
-    if (query.length < 3)
-        return res.jsonp(rtn_data);
+    if (query.length < 3) {
+        return cb("")
+    }
 
     model.get_product_list().forEach(function(e, idx, array)
     {
             if (e[1].toLowerCase().indexOf(query.toLowerCase()) > -1)
                 rtn_data.push(e);
     });
-    return res.jsonp(rtn_data);
+    return cb(rtn_data)
 }
 
 app.get('/', function (req, res) {
@@ -69,8 +68,11 @@ app.get('/api/*', function(req, res) {
         next_path = path.split("/")[3];
         switch (next_path) {
             case "products.json":
-                //TODO: no http req should be sent to model
-                return send_product_list(req, res);
+                search = req.query.s
+                send_product_list(search, function(data) {
+                    return res.jsonp(data);
+                })
+                break;
             case "item_info.json":
                 model.get_item_info(req.query.i, function(data) {
                     return res.jsonp(data);

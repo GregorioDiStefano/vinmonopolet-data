@@ -101,7 +101,7 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
         function update_graph(item_name, item_data) {
 
             $scope.chart_options = { scaleShowLabels : false,
-                                     animation: false,
+                                     animation: true,
                                      responsive: true,
                                      maintainAspectRatio: false,
                                      scaleOverride : true }
@@ -114,7 +114,6 @@ angular.module('VinData', ['ui.bootstrap', "chart.js", "ngTable"])
                 tmp_data.push(e["price"])
             })
 
-            console.log(tmp_data)
             //calculate start value
             var y_start = tmp_data.concat().sort()[0] * 0.90
             $scope.chart_options["scaleStartValue"] = y_start

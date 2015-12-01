@@ -8,27 +8,21 @@ var express = require("express"),
 
 var fs = require('fs');
 
-var product_list = [],
-    most_recent_date,
+var most_recent_date,
     least_recent_date,
     useful_dates;
 
-var days_passed,
+var config_file = "config/config.json",
+    days_passed,
     db_file;
 
-try {
-    config = JSON.parse(fs.readFileSync('config.json'));
-    if (!("database_file" in config && "days_passed" in config)) {
-        throw("Configuration is incomplete")
-    }
+var env = process.env.NODE_ENV || 'development';
 
-    db_file = config.database_file
-    days_passed = config.days_passed
-  }
-  catch (err) {
-    console.log('There has been an error parsing your JSON:', err)
-    process.exit(1)
-  }
+if (env == "test") {
+    load_config("./test/config/config.json")
+} else {
+    load_config(config_file);
+}
 
 app.set('view engine', 'jade');
 app.set('views', './views');
@@ -36,43 +30,14 @@ app.use('/static', express.static('static'));
 jade.renderFile('./views/index.jade', { cache : true });
 app.use(compression());
 
-
-
-var env = process.env.NODE_ENV || 'development';
-
 if (env == "test") {
     console.log("Test enviornment".yellow);
-    model.open_db(db_file);
-    model.do_check_db();
 } else if (env == "development") {
     console.log("Development enviornment".rainbow);
-    model.open_db(db_file);
-    model.do_check_db();
-    setInterval(function() { model.do_check_db(); }, 1000 * 60 * 15);
 } else if (env == "production") {
     console.log("Production enviornment".green);
-    model.open_db(db_file);
-    model.do_check_db();
-    setInterval(function() { model.do_check_db(); }, 1000 * 60 * 15);
 }
-
-setInterval(model.update_product_list, 1000 * 60 * 60);
-model.update_product_list();
-
-function send_product_list(query, cb) {
-    var rtn_data = [];
-
-    if (query.length < 3) {
-        return cb("")
-    }
-
-    model.get_product_list().forEach(function(e, idx, array)
-    {
-            if (e[1].toLowerCase().indexOf(query.toLowerCase()) > -1)
-                rtn_data.push(e);
-    });
-    return cb(rtn_data)
-}
+model.open_db(db_file);
 
 app.get('/', function (req, res) {
     res.render('index.jade', { days_passed : days_passed });
@@ -86,7 +51,7 @@ app.get('/api/*', function(req, res) {
         next_path = path.split("/")[3];
         switch (next_path) {
             case "products.json":
-                search = req.query.s
+                search = req.query.s || ""
                 send_product_list(search, function(data) {
                     return res.jsonp(data);
                 })
@@ -118,3 +83,34 @@ var server = app.listen(3000, function () {
   var port = server.address().port;
   console.log('Listening at http://%s:%s'.green, host, port);
 });
+
+function load_config(config_file) {
+    try {
+        config = JSON.parse(fs.readFileSync(config_file));
+        if (!("database_file" in config && "days_passed" in config)) {
+            throw("Configuration is incomplete")
+        }
+
+        db_file = config.database_file
+        days_passed = config.days_passed
+      }
+      catch (err) {
+        console.log('There has been an error parsing your JSON:', err)
+        process.exit(1)
+      }
+}
+
+function send_product_list(query, cb) {
+    var rtn_data = [];
+
+    if (query.length < 3) {
+        return cb("")
+    }
+
+    model.get_product_list().forEach(function(e, idx, array)
+    {
+            if (e[1].toLowerCase().indexOf(query.toLowerCase()) > -1)
+                rtn_data.push(e);
+    });
+    return cb(rtn_data)
+}

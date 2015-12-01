@@ -16,7 +16,6 @@ var get_price_difference = model_export.__get__('price_difference'),
     get_update_product_list = model_export.__get__('update_product_list');
 
 before(function() {
-    //restore test.db to clean copy
     shelljs.exec("cd test && cp data/test.db.original ./test.db")
 })
 
@@ -51,10 +50,10 @@ describe("new price detection", function() {
     });
 })
 
+
 describe("new product detection", function() {
     it("should detect \"new\" products", function(done) {
         get_product_difference(-1, function(new_items) {
-            //check also for varenummer 1503 and 9999
             var seen_varenummer = []
             new_items.forEach(function(e, idx, array) {
                 seen_varenummer.push(e.varenummer)
@@ -74,21 +73,13 @@ describe("update database again and check", function() {
         done()
     }),
 
-    it("should execute do_db_check", function(done) {
-        get_do_check_db(function() {
-            done()
-        })
-    }),
-
-    it("should update product list", function(done) {
-        get_update_product_list(function() {
-            done()
-        })
-    }),
-
     it("should contain new products when product list updated", function() {
-        products = get_get_product_list()
-        assert.deepEqual(products[products.length - 1], [10000, "New product 3", 0.75])
+        get_update_product_list(function(done) {
+            //products = get_get_product_list() //quicker than waiting for fs.watch
+            assert.deepEqual(products[products.length - 1], [10000, "New product 3", 0.75])
+            done()
+        })
+
     });
 })
 
@@ -117,6 +108,9 @@ describe("new product detection post db update", function() {
         })
     });
 })
+
+
+
 
 after(function() {
     //restore test.db to clean copy

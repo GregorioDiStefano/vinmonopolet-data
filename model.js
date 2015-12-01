@@ -3,14 +3,22 @@ var squel = require("squel"),
     NodeCache = require("node-cache"),
     cache = new NodeCache(),
     helpers = require("./helpers"),
-    Promise = require('promise');
+    fs = require("fs");
 
-var useful_dates,
+var product_list = [],
+    useful_dates,
     db,
     env = process.env.NODE_ENV;
 
 function open_db(filename) {
     db = new sqlite3.Database(filename);
+    do_check_db();
+    update_product_list();
+
+    fs.watch(filename, function (curr, prev) {
+            do_check_db();
+            update_product_list();
+    });
 }
 
 function get_item_info(id, callback) {
@@ -122,8 +130,8 @@ function products_difference(days, callback) {
 }
 
 function update_product_list(cb) {
+    tmp_product_list = [];
 
-    product_list = [];
     var query = squel.select()
                      .field("distinct varenummer as n")
                      .field("varenavn as name")
@@ -137,12 +145,13 @@ function update_product_list(cb) {
                 console.log(err);
             }
             else {
-                product_list.push([row.n, row.name, row.volume]);
+                tmp_product_list.push([row.n, row.name, row.volume]);
             }
         }, function() {
-               if (product_list.length === 0) {
+               if (tmp_product_list.length === 0) {
                    console.log("No products found. Database problem!");
                } else {
+                   product_list = tmp_product_list
                    console.log("Product list complete. Item count: ", product_list.length);
                    cb && cb();
                }

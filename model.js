@@ -15,7 +15,7 @@ function open_db(filename) {
     do_check_db();
     update_product_list();
 
-    fs.watch(filename, function (curr, prev) {
+    fs.watch(filename, function () {
             do_check_db();
             update_product_list();
     });

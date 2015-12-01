@@ -7,8 +7,8 @@ var http = require('http'),
 shelljs.exec("cd test && cp data/test.db.original ./test.db")
 var server = require("../server");
 
-describe("check new product 1 is in new_products.json", function() {
-    it("should contain \"new2\" products in products.json", function(done) {
+describe("check new_products.json before update", function() {
+    it("should contain \"new product 2\" in products.json", function(done) {
         http.get({
             hostname: 'localhost',
             port: 3000,
@@ -23,7 +23,6 @@ describe("check new product 1 is in new_products.json", function() {
     });
 })
 
-
 describe("update database again and check", function() {
     it("db should be modified without issues", function(done) {
         shelljs.exec("cd test && python csv_to_db.py data/produkter20151122-002728-919.csv 2>/dev/null", {silent:true})
@@ -31,8 +30,8 @@ describe("update database again and check", function() {
     })
 })
 
-describe("check new product 3 is in new_products.json", function() {
-    it("should contain \"new\" products in products.json", function(done) {
+describe("check new_products.json after update", function() {
+    it("should contain \"new product 3\" in products.json", function(done) {
         http.get({
             hostname: 'localhost',
             port: 3000,

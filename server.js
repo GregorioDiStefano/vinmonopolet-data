@@ -19,6 +19,7 @@ var config_file = "config/config.json",
 var env = process.env.NODE_ENV || 'development';
 
 if (env == "test") {
+    console.log("Using test");
     load_config("./test/config/config.json")
 } else {
     load_config(config_file);

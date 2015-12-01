@@ -7,25 +7,25 @@ var rewire = require('rewire'),
     shelljs = require('shelljs'),
     model_export = rewire("../model");
 
+shelljs.exec("cd test && cp data/test.db.original ./test.db")
+
 var get_price_difference = model_export.__get__('price_difference'),
     get_product_difference = model_export.__get__('products_difference'),
     get_open_db = model_export.__get__('open_db'),
     get_do_check_db = model_export.__get__('do_check_db'),
     get_get_useful_dates = model_export.__get__('get_useful_dates'),
-    get_get_product_list = model_export.__get__('get_product_list'),
-    get_update_product_list = model_export.__get__('update_product_list');
-
-before(function() {
-    shelljs.exec("cd test && cp data/test.db.original ./test.db")
-})
+    get_get_product_list = model_export.__get__('get_product_list');
 
 before(function (done) {
     get_open_db("./test/test.db")
-    get_do_check_db(function() {
-        done()
-    })
+    setTimeout(done, 200) //should really not be done this way...
 })
 
+describe("check product list", function() {
+    it("should contain 9 items", function() {
+        assert.equal(get_get_product_list().length, 9)
+    })
+})
 
 describe("most recent db entry", function() {
     it("should be 2015-11-21", function(done) {
@@ -62,25 +62,25 @@ describe("new product detection", function() {
             done()
         })
     });
-
-
 })
 
 
 describe("update database again and check", function() {
     it("db should be modified without issues", function(done) {
-        shelljs.exec("cd test && python csv_to_db.py data/produkter20151122-002728-919.csv 2>/dev/null", {silent:true})
-        done()
+        shelljs.exec("cd test && python csv_to_db.py data/produkter20151122-002728-919.csv", {silent:false})
+        setInterval(done, 200); //oops
+    });
+})
+
+describe("why dont these work", function() {
+    it("should contain new products when product list updated", function() {
+        products = get_get_product_list()
+        assert.deepEqual(products[products.length - 1], [10000, "New product 3", 0.75])
     }),
 
-    it("should contain new products when product list updated", function() {
-        get_update_product_list(function(done) {
-            //products = get_get_product_list() //quicker than waiting for fs.watch
-            assert.deepEqual(products[products.length - 1], [10000, "New product 3", 0.75])
-            done()
-        })
-
-    });
+    it("should contain 10 items", function() {
+        assert.equal(get_get_product_list().length, 10)
+    })
 })
 
 describe("most recent db entry post-update", function() {

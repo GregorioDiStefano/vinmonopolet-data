@@ -6,19 +6,37 @@ var express = require("express"),
     model = require("./model"),
     helpers = require("./helpers");
 
-var db_file = "vinmonopolet.db",
-    product_list = [],
+var fs = require('fs');
+
+var product_list = [],
     most_recent_date,
     least_recent_date,
     useful_dates;
 
-var days_passed = 30;
+var days_passed,
+    db_file;
+
+try {
+    config = JSON.parse(fs.readFileSync('config.json'));
+    if (!("database_file" in config && "days_passed" in config)) {
+        throw("Configuration is incomplete")
+    }
+
+    db_file = config.database_file
+    days_passed = config.days_passed
+  }
+  catch (err) {
+    console.log('There has been an error parsing your JSON:', err)
+    process.exit(1)
+  }
 
 app.set('view engine', 'jade');
 app.set('views', './views');
 app.use('/static', express.static('static'));
 jade.renderFile('./views/index.jade', { cache : true });
 app.use(compression());
+
+
 
 var env = process.env.NODE_ENV || 'development';
 
